@@ -4,11 +4,8 @@
   <meta charset="UTF-8">
   <title>Helm Chart Validator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Bootstrap via CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
-
   <style>
     body {
       background: linear-gradient(to right, #e0eafc, #cfdef3);
@@ -19,7 +16,6 @@
       justify-content: center;
       padding: 2rem;
     }
-
     .container-custom {
       display: flex;
       width: 100%;
@@ -27,16 +23,12 @@
       border-radius: 10px;
       overflow: hidden;
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      animation: fadeIn 1.2s ease-in-out;
     }
-
     .left-pane {
       background: white;
       flex: 1;
       padding: 2rem;
-      animation: slideInLeft 1s ease;
     }
-
     .right-pane {
       background: #1e1e1e;
       flex: 1;
@@ -46,94 +38,98 @@
       font-size: 0.9rem;
       overflow-y: auto;
       max-height: 600px;
-      animation: slideInRight 1s ease;
     }
-
-    h1 {
-      font-weight: bold;
-      color: #007bff;
-    }
-
-    .form-control, .btn {
-      border-radius: 6px;
-      transition: all 0.3s ease;
-    }
-
-    .btn:hover {
-      transform: scale(1.05);
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.98); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    @keyframes slideInLeft {
-      from { transform: translateX(-30px); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-
-    @keyframes slideInRight {
-      from { transform: translateX(30px); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-
-    footer {
-      margin-top: 2rem;
-      text-align: center;
-      font-size: 0.85rem;
-      color: #777;
+    .btn:disabled {
+      opacity: 0.6;
     }
   </style>
 </head>
 <body>
 
-  <div class="container-custom">
-    <!-- Left side: Forms -->
-    <div class="left-pane">
-      <h1 class="mb-4">🚀 Helm Chart Validator</h1>
-      <p class="mb-4 text-muted">Upload a Helm chart to validate or store metadata in the database.</p>
+<div class="container-custom">
+  <div class="left-pane">
+    <h1 class="mb-4">🚀 Helm Chart Validator</h1>
+    <p class="mb-4 text-muted">Upload a Helm chart to validate or store metadata in the database.</p>
 
-      <!-- Validate -->
-      <form action="/validate" method="post" enctype="multipart/form-data" class="mb-4">
-        <div class="mb-3">
-          <label for="chartValidate" class="form-label">Validate Chart (.tgz)</label>
-          <input class="form-control" type="file" name="chart" id="chartValidate" required>
-        </div>
-        <button type="submit" class="btn btn-outline-primary w-100">🧪 Validate</button>
-      </form>
+    <form id="validateForm" class="mb-4">
+      <div class="mb-3">
+        <label for="chartValidate" class="form-label">Validate Chart (.tgz)</label>
+        <input class="form-control" type="file" id="chartValidate" required>
+      </div>
+      <button type="submit" class="btn btn-outline-primary w-100">🧪 Validate</button>
+    </form>
 
-      <!-- Submit -->
-      <form action="/submit" method="post" enctype="multipart/form-data">
-        <div class="mb-3">
-          <label for="chartSubmit" class="form-label">Submit Chart (.tgz)</label>
-          <input class="form-control" type="file" name="chart" id="chartSubmit" required>
-        </div>
-        <button type="submit" class="btn btn-success w-100">📦 Submit & Store</button>
-      </form>
+    <form id="submitForm">
+      <button type="submit" id="submitBtn" class="btn btn-success w-100" disabled>📦 Submit & Store</button>
+    </form>
 
-      <footer>
-        &copy; 2025 Helm Chart Validator
-      </footer>
-    </div>
-
-    <!-- Right side: Output display -->
-    <div class="right-pane">
-      <h5 class="text-white mb-3">📄 Helm Template Output</h5>
-      <p class="text-muted">Output will be shown here after validation or submission.</p>
-      <pre>
-# Example Output:
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: my-service
-...
-      </pre>
-    </div>
+    <footer class="mt-4 text-muted text-center">&copy; 2025 Helm Chart Validator</footer>
   </div>
+
+  <div class="right-pane">
+    <h5 class="text-white mb-3">📄 Helm Template Output</h5>
+    <pre id="outputPane"># Output will appear here after validation.</pre>
+  </div>
+</div>
+
+<script>
+  let validatedFile = null;
+
+  document.getElementById("validateForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const fileInput = document.getElementById("chartValidate");
+    const outputPane = document.getElementById("outputPane");
+
+    if (!fileInput.files.length) return;
+
+    const formData = new FormData();
+    formData.append("chart", fileInput.files[0]);
+    outputPane.textContent = "🧪 Validating...";
+
+    const res = await fetch("/validate", {
+      method: "POST",
+      body: formData,
+    });
+
+    const text = await res.text();
+    if (res.ok) {
+      validatedFile = fileInput.files[0];
+      document.getElementById("submitBtn").disabled = false;
+      outputPane.textContent = `✅ Validation Success\n\n${text}`;
+    } else {
+      validatedFile = null;
+      document.getElementById("submitBtn").disabled = true;
+      outputPane.textContent = `❌ Validation Failed\n\n${text}`;
+    }
+  });
+
+  document.getElementById("submitForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const outputPane = document.getElementById("outputPane");
+
+    if (!validatedFile) {
+      outputPane.textContent = "❌ No validated chart available.";
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("chart", validatedFile);
+
+    outputPane.textContent = "📦 Submitting...";
+
+    const res = await fetch("/submit", {
+      method: "POST",
+      body: formData,
+    });
+
+    const text = await res.text();
+    if (res.ok) {
+      outputPane.textContent = `✅ Submitted Successfully\n\n${text}`;
+    } else {
+      outputPane.textContent = `❌ Submission Failed\n\n${text}`;
+    }
+  });
+</script>
 
 </body>
 </html>
-
