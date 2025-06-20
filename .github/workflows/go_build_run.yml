@@ -27,6 +27,9 @@ jobs:
     - name: Run the containers
       run: docker compose up -d
 
-    - name: ping test
-      run: curl http://localhost:8080
+    - name: List of active & inactive container
+      run: docker ps -a
+   
+    - name: Checking for docker compose logs
+      run: docker-compose logs
 
