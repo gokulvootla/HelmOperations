@@ -1,0 +1,29 @@
+# This workflow will build a golang project
+# run the application
+
+name: Go_pre/post_submit
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20'
+
+    - name: Download Dependencies
+      run: go mod tidy
+
+    - name: Run the containers
+      run: docker compose up -d
+
