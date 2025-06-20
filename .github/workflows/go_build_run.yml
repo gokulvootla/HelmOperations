@@ -27,3 +27,6 @@ jobs:
     - name: Run the containers
       run: docker compose up -d
 
+    - name: ping test
+      run: curl --fail http://localhost:8080 || echo "Ping failed" && exit 1
+
