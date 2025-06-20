@@ -4,6 +4,7 @@
 name: Go_pre/post_submit
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "main" ]
   pull_request:
