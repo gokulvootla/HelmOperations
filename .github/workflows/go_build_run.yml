@@ -31,5 +31,5 @@ jobs:
       run: docker ps -a
    
     - name: Checking for docker compose logs
-      run: docker-compose logs
+      run: docker compose logs
 
